@@ -1,0 +1,10 @@
+com/itheima/health/service/CheckGroupService.class
+com/itheima/health/service/CheckItemService.class
+com/itheima/health/service/ReportService.class
+com/itheima/health/service/ProportionService.class
+com/itheima/health/service/SetmealService.class
+com/itheima/health/service/UserService.class
+com/itheima/health/service/MemberService.class
+com/itheima/health/service/OrderSettingService.class
+com/itheima/health/service/RoleService.class
+com/itheima/health/service/OrderService.class

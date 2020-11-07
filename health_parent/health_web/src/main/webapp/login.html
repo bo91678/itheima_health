@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- 页面meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>传智健康</title>
+    <meta name="description" content="传智健康">
+    <meta name="keywords" content="传智健康">
+    <meta content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" name="viewport">
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="plugins/elementui/index.css">
+    <link rel="stylesheet" href="css/login.css">
+    <link rel="stylesheet" type="text/css" href="css/styles.css">
+    <script src="js/jquery.min.js"></script>
+</head>
+<body class="hold-transition skin-purple sidebar-mini">
+<div id="app">
+
+    <div class="wrapper">
+        <div class="container">
+            <h1>Welcome</h1>
+
+            <form id="form" class="login-form" method="post" action="/login.do">
+                <div>
+                        <span class="svg-container svg-container_login">
+                          <span class="user"></span>
+                        </span>
+                    <input id="username" name="username" type="text" placeholder="用户名" value=""/>
+                </div>
+                <div>
+                        <span class="svg-container">
+                          <span class="username"></span>
+                        </span>
+                    <input id="password" name="password" type="password" placeholder="密码" value=""/>
+                </div>
+                <button type="submit" id="login-button">登录</button>
+            </form>
+        </div>
+
+        <ul class="bg-bubbles">
+            <li>Zhq</li>
+            <li>ZhouTao</li>
+            <li>ZhouTao</li>
+            <li>ZhouTao</li>
+            <li>ZhouTao</li>
+            <li>ZhouTao</li>
+        </ul>
+    </div>
+</div>
+</body>
+<!-- 引入组件库 -->
+<script src="js/vue.js"></script>
+<script src="plugins/elementui/index.js"></script>
+
+<!--引入样式-->
+<script>
+    $('form').submit(function (e) {
+        var form = this;
+        e.preventDefault();
+        $('form').fadeOut(500);
+        $('.wrapper').addClass('form-success');
+        setTimeout(function () {
+            form.submit();
+        }, 1000); // in milliseconds
+    });
+</script>
+
+<div style="text-align:center;margin:70px 0; font:normal 16px/26px 'MicroSoft YaHei';color:#000000">
+    <h1>Health Management System</h1>
+</div>
+
+</html>

@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- 页面meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>传智健康</title>
+    <meta name="description" content="传智健康">
+    <meta name="keywords" content="传智健康">
+    <meta content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" name="viewport">
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="../plugins/elementui/index.css">
+    <link rel="stylesheet" href="../plugins/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <!-- 引入组件库 -->
+    <script type="text/javascript" src="../js/jquery.min.js"></script>
+    <script src="../js/vue.js"></script>
+    <script src="../plugins/elementui/index.js"></script>
+    <script src="../js/axios-0.18.0.js"></script>
+    <style>
+        .datatable {
+            position: relative;
+            box-sizing: border-box;
+            -webkit-box-flex: 1;
+            width: 100%;
+            max-width: 100%;
+            font-size: 14px;
+            color: rgb(96, 98, 102);
+            overflow: hidden;
+            flex: 1 1 0%;
+        }
+
+        .datatable td, .datatable th {
+            padding: 12px 0;
+            min-width: 0;
+            -webkit-box-sizing: border-box;
+            box-sizing: border-box;
+            text-overflow: ellipsis;
+            vertical-align: middle;
+            position: relative;
+            text-align: left;
+        }
+    </style>
+</head>
+<body class="hold-transition">
+<div id="app">
+    <div class="content-header">
+        <h1>用户管理
+            <small></small>
+        </h1>
+        <el-breadcrumb separator-class="el-icon-arrow-right" class="breadcrumb">
+            <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
+            <el-breadcrumb-item>用户管理</el-breadcrumb-item>
+            <el-breadcrumb-item></el-breadcrumb-item>
+        </el-breadcrumb>
+    </div>
+    <div class="app-container" align="left">
+        <div class="box">
+            <div class="filter-container">
+                <el-input placeholder="编码/名称/助记码" v-model="pagination.queryString" style="width: 200px;"
+                          class="filter-item" @keyup.enter.native="handleFilter"></el-input>
+                <el-button @click="findPage()" class="dalfBut">查询</el-button>
+                <el-button type="primary" class="butT" @click="handleCreate()">新建用户</el-button>
+            </div>
+            <el-table size="small" current-row-key="id" :data="dataList" stripe highlight-current-row>
+                <el-table-column type="index" align="center" label="序号"></el-table-column>
+                <el-table-column prop="username" label="用户名" align="center"></el-table-column>
+                <el-table-column label="性别" align="center">
+                    <template slot-scope="scope">
+                        <span>{{ scope.row.sex == '0' ? '不限' : scope.row.sex == '1' ? '男' : '女'}}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="birthday" label="出生日期" align="center"></el-table-column>
+                <el-table-column prop="telephone" label="电话号码" align="center"></el-table-column>
+                <el-table-column prop="station" label="状态" align="center"></el-table-column>
+                <el-table-column prop="remark" label="备注" align="center"></el-table-column>
+                <el-table-column label="操作" align="center" width="250">
+                    <template slot-scope="scope">
+                        <el-button size="mini" type="primary" @click="handleCreateRole(scope.row)">添加角色</el-button>
+                        <el-button size="mini" type="primary" @click="handleUpdate(scope.row)">编辑</el-button>
+                        <el-button size="mini" type="danger" @click="handleDelete(scope.row)">删除</el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
+            <div class="pagination-container">
+                <el-pagination
+                        class="pagiantion"
+                        @current-change="handleCurrentChange"
+                        :current-page="pagination.currentPage"
+                        :page-size="pagination.pageSize"
+                        layout="total, prev, pager, next, jumper"
+                        :total="pagination.total">
+                </el-pagination>
+            </div>
+            <!-- 新增用户弹层 -->
+            <div class="add-form">
+                <el-dialog title="新增用户" :visible.sync="dialogFormVisible">
+                    <template>
+                        <el-tabs v-model="activeName" type="card">
+                            <el-tab-pane label="新增用户" name="first">
+                                <el-form label-position="right" label-width="100px">
+                                    <el-row>
+                                        <el-col :span="12">
+                                            <el-form-item label="用户名">
+                                                <el-input v-model="formData.username"/>
+                                            </el-form-item>
+                                        </el-col>
+                                        <el-col :span="12">
+                                            <el-form-item label="性别">
+                                                <el-select v-model="formData.gender">
+                                                    <el-option label="不限" value="0"></el-option>
+                                                    <el-option label="男" value="1"></el-option>
+                                                    <el-option label="女" value="2"></el-option>
+                                                </el-select>
+                                            </el-form-item>
+                                        </el-col>
+                                    </el-row>
+                                    <el-row>
+                                        <el-col :span="12">
+                                            <el-form-item label="出生日期">
+                                                <el-date-picker
+                                                        v-model="formData.birthday"
+                                                        type="date"
+                                                        placeholder="选择日期时间"
+                                                        align="right"
+                                                        :picker-options="pickerOptions">
+                                                </el-date-picker>
+                                            </el-form-item>
+                                        </el-col>
+                                        <el-col :span="12">
+                                            <el-form-item label="电话号码">
+                                                <el-input v-model="formData.telephone"/>
+                                            </el-form-item>
+                                        </el-col>
+                                    </el-row>
+                                    <el-row>
+                                        <el-col :span="24">
+                                            <el-form-item label="状态">
+                                                <el-input v-model="formData.station" type="textarea"></el-input>
+                                            </el-form-item>
+                                        </el-col>
+                                    </el-row>
+                                    <el-row>
+                                        <el-col :span="24">
+                                            <el-form-item label="备注">
+                                                <el-input v-model="formData.remark" type="textarea"></el-input>
+                                            </el-form-item>
+                                        </el-col>
+                                    </el-row>
+                                </el-form>
+                            </el-tab-pane>
+                        </el-tabs>
+                    </template>
+                    <div slot="footer" class="dialog-footer">
+                        <el-button @click="dialogFormVisible = false">取消</el-button>
+                        <el-button type="primary" @click="handleAdd()">确定</el-button>
+                    </div>
+                </el-dialog>
+            </div>
+
+            <!-- 添加角色弹层 -->
+            <div class="add-form">
+                <el-dialog title="添加角色" :visible.sync="dialogFormVisible4Role">
+                    <template>
+                        <el-tabs v-model="activeName" type="card">
+                            <div class="checkScrol">
+                                <table class="datatable">
+                                    <thead>
+                                    <tr>
+                                        <th>序号</th>
+                                        <th>角色名</th>
+                                        <th>角色关键词</th>
+                                        <th>选择</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr v-for="c in RoleTableData">
+                                        <td><label :for="c.id">{{c.id}}</label></td>
+                                        <td><label :for="c.id">{{c.name}}</label></td>
+                                        <td><label :for="c.id">{{c.keyword}}</label></td>
+                                        <td>
+                                            <input :id="c.id" v-model="roleIds" type="checkbox" :value="c.id">
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </el-tabs>
+                    </template>
+                    <div slot="footer" class="dialog-footer">
+                        <el-button @click="dialogFormVisible4Role = false">取消</el-button>
+                        <el-button type="primary" @click="handleAddRole()">确定</el-button>
+                    </div>
+                </el-dialog>
+            </div>
+
+            <!-- 编辑用户弹层 -->
+            <div class="add-form">
+                <el-dialog title="编辑用户" :visible.sync="dialogFormVisible4Edit">
+                    <template>
+                        <el-tabs v-model="activeName" type="card">
+                            <el-tab-pane label="编辑用户" name="first">
+                                <el-form label-position="right" label-width="100px">
+                                    <el-row>
+                                        <el-col :span="12">
+                                            <el-form-item label="用户名">
+                                                <el-input v-model="formData.username"/>
+                                            </el-form-item>
+                                        </el-col>
+                                        <el-col :span="12">
+                                            <el-form-item label="性别">
+                                                <el-select v-model="formData.gender">
+                                                    <el-option label="不限" value="0"></el-option>
+                                                    <el-option label="男" value="1"></el-option>
+                                                    <el-option label="女" value="2"></el-option>
+                                                </el-select>
+                                            </el-form-item>
+                                        </el-col>
+                                    </el-row>
+                                    <el-row>
+                                        <el-col :span="12">
+                                            <el-form-item label="出生日期">
+                                                <el-date-picker
+                                                        v-model="formData.birthday"
+                                                        type="date"
+                                                        placeholder="选择日期时间"
+                                                        align="right"
+                                                        :picker-options="pickerOptions">
+                                                </el-date-picker>
+                                            </el-form-item>
+                                        </el-col>
+                                        <el-col :span="12">
+                                            <el-form-item label="电话号码">
+                                                <el-input v-model="formData.telephone"/>
+                                            </el-form-item>
+                                        </el-col>
+                                    </el-row>
+                                    <el-row>
+                                        <el-col :span="24">
+                                            <el-form-item label="状态">
+                                                <el-input v-model="formData.station" type="textarea"></el-input>
+                                            </el-form-item>
+                                        </el-col>
+                                    </el-row>
+                                    <el-row>
+                                        <el-col :span="24">
+                                            <el-form-item label="备注">
+                                                <el-input v-model="formData.remark" type="textarea"></el-input>
+                                            </el-form-item>
+                                        </el-col>
+                                    </el-row>
+                                </el-form>
+                            </el-tab-pane>
+                        </el-tabs>
+                    </template>
+                    <div slot="footer" class="dialog-footer">
+                        <el-button @click="dialogFormVisible4Edit = false">取消</el-button>
+                        <el-button type="primary" @click="handleEdit()">确定</el-button>
+                    </div>
+                </el-dialog>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+
+<script>
+    var vue = new Vue({
+        el: '#app',
+        data: {
+            activeName: 'first',//添加/编辑窗口Tab标签名称
+            pagination: {//分页相关属性
+                currentPage: 1,
+                pageSize: 10,
+                total: 100,
+                queryString: null,
+            },
+            dataList: [],//列表数据
+            formData: {},//表单数据
+            tableData: [],//新增和编辑表单中对应的检查项列表数据
+            RoleTableData: [],//添加角色表单中对应的角色列表数据
+            roleIds: [],//新增和编辑表单中检查项对应的复选框，基于双向绑定可以进行回显和数据提交
+            dialogFormVisible: false,//控制添加窗口显示/隐藏
+            dialogFormVisible4Edit: false,//控制编辑窗口显示/隐藏
+            dialogFormVisible4Role: false //控制添加角色窗口显示/隐藏
+        },
+        created() {
+            this.findPage();
+        },
+        methods: {
+            // 重置表单
+            resetForm() {
+                //清空表单-表单初始化
+                this.formData = {};
+                //选中基本信息标签项
+                this.activeName = 'first';
+                // 清除钩选
+                this.roleIds = [];
+                //
+                this.tableData = [];
+            },
+            //分页查询用户
+            findPage() {
+                //发送请求到后台
+                axios.post('/user/findPage.do', this.pagination).then(response => {
+                    //判断响应数据
+                    if (response.data.flag) {
+                        this.dataList = response.data.data.rows;
+                        this.pagination.total = response.data.data.total;
+                    } else {
+                        this.$message.error(response.data.message);
+                    }
+                });
+            },
+            //弹出新增用户弹层
+            handleCreate() {
+                //调用重置表单方法然后弹出窗口
+                this.resetForm();
+                //将dialogFormVisible(表单控制隐藏可见)属性改为true
+                this.dialogFormVisible = true;
+            },
+            //提交新增用户信息
+            handleAdd() {
+                //发送请求到后台提交检查组信息
+                axios.post('/user/addUser.do', this.formData).then(response => {
+                    this.$message({
+                        message: response.data.message,
+                        type: response.data.flag ? "success" : "error"
+                    })
+                    if (response.data.flag) {
+                        // 关闭窗口
+                        this.dialogFormVisible = false;
+                        // 刷新列表数据
+                        this.findPage();
+                    }
+                })
+            },
+            handleCreateRole(row) {
+                //handleCreateRole方法中弹出新增弹窗
+                this.dialogFormVisible4Role = "true";
+                //获得用户id
+                var id = row.id;
+                this.formData.id = id;
+                //发送post请求，查询所有角色
+                axios.post('/role/findAll.do?').then(response => {
+                    var findAllResult = response.data;
+                    //接收响应，判断响应是否成功
+                    if (null != findAllResult) {
+                        //若响应成功，绑定角色表单数据
+                        this.RoleTableData = findAllResult.data
+                        //发送post请求，查询用户id关联的角色id，参数绑定用户id
+                        axios.post('/user/checkRoleIdByUserId.do?id=' + id).then(response => {
+                            var checkRoleIdByUserIdResult = response.data;
+                            //接收响应，判断响应是否成功
+                            if (null != checkRoleIdByUserIdResult) {
+                                //若响应成功，绑定角色id
+                                this.roleIds = checkRoleIdByUserIdResult.data;
+                            }else {
+                                this.$message.error(checkRoleIdByUserIdResult.message);
+                            }
+                        })
+                        //若响应失败，弹出提示信息
+                    }else {
+                        this.$message.error(findAllResult.message);
+                    }
+                })
+            },
+            handleAddRole() {
+                //发送post请求，传入关联的角色id数据，用户id
+                axios.post('/user/updateRoleIdByUserId.do?roleIds=' + this.roleIds, this.formData).then(response => {
+                    var result = response.data;
+                    //接收响应，弹出提示信息
+                    this.$message({
+                            message: result.message,
+                            type: result.flag ? "success" : "error"
+                        }
+                    )
+                    //若响应成功，关闭添加角色窗口
+                    if (result.flag) {
+                        this.dialogFormVisible4Role = false;
+                        //刷新列表数据
+                        this.findPage();
+                    }
+                })
+            },
+            // 回显用户数据
+            handleUpdate(row) {
+                //调用重置表单的方法
+                this.resetForm();
+                //弹出编辑窗口
+                this.dialogFormVisible4Edit = true;
+                //发送请求到后台
+                axios.get('/user/findById.do?userId=' + row.id).then(response => {
+                    if (response.data.flag) {
+                        //成功则绑定数据
+                        this.formData = response.data.data;
+                    }
+                });
+            },
+            //提交修改后的用户数据
+            handleEdit() {
+                //提交检查组信息-发送请求到后台
+                axios.post('/user/update.do?', this.formData).then(response => {
+                    this.$message({
+                        message: response.data.message,
+                        type: response.data.flag ? "success" : "error"
+                    })
+                    if (response.data.flag) {
+                        //关闭编辑窗口
+                        this.dialogFormVisible4Edit = false;
+                        // 刷新列表数据
+                        this.findPage();
+                    }
+                })
+            },
+            // 删除用户
+            handleDelete(row) {
+                this.$confirm('此操作将【永久删除】该用户, 是否继续?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    // 点击确定后调用
+                    axios.post('/user/deleteById.do?id=' + row.id).then(response => {
+                        this.$message({
+                            message: response.data.message,
+                            type: response.data.flag ? "success" : "error"
+                        })
+                        if (response.data.flag) {
+                            // 成功
+                            // 刷新列表数据
+                            this.findPage();
+                        }
+                    })
+                }).catch(() => {
+                    // 点击取消后调用
+                    // 空着，防止报错
+                });
+            },
+            //切换页码
+            handleCurrentChange(currentPage) {
+                //currentPage为切换后的页码
+                this.pagination.currentPage = currentPage;
+                this.findPage();
+            },
+        }
+    })
+</script>
+</html>

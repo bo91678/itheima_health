@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- 页面meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>传智健康</title>
+    <meta name="description" content="传智健康">
+    <meta name="keywords" content="传智健康">
+    <meta content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" name="viewport">
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="../js/vue.js"></script>
+    <link rel="stylesheet" href="../plugins/elementui/index.css">
+    <script src="../plugins/elementui/index.js"></script>
+
+
+</head>
+<body class="hold-transition">
+<div id="app">
+    <div class="content-header">
+        <h1>统计分析
+            <small>会员数量</small>
+        </h1>
+        <el-breadcrumb separator-class="el-icon-arrow-right" class="breadcrumb">
+            <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
+            <el-breadcrumb-item>统计分析</el-breadcrumb-item>
+            <el-breadcrumb-item>会员数量</el-breadcrumb-item>
+        </el-breadcrumb>
+    </div>
+    <div class="app-container">
+
+        <el-date-picker
+                v-model="value1"
+                type="month"
+                placeholder="开始月份"
+                :picker-options="startTimeOptions">
+        </el-date-picker>
+        <el-date-picker
+                v-model="value2"
+                type="month"
+                placeholder="结束月份"
+                :picker-options="endTimeOptions">
+        </el-date-picker>
+        <el-button type="primary" @click="findMemberByDate()">查询</el-button>
+        <div class="box">
+            <!-- 为 ECharts 准备一个具备大小（宽高）的 DOM -->
+            <div id="chart1" style="height:600px;"></div>
+        </div>
+    </div>
+</div>
+</body>
+<!-- 引入组件库 -->
+
+<script src="../js/axios-0.18.0.js"></script>
+<script src="../plugins/echarts.js"></script>
+<script src="../js/jquery.min.js"></script>
+<script>
+    var vue = new Vue({
+        el: "#app",
+        data: {
+            startTimeOptions: {
+                disabledDate: (time) => {
+                    if (this.value2 != "") {
+                        return time.getTime() > Date.now() || time.getTime() > this.value2;
+                    } else {
+                        return time.getTime() > Date.now();
+                    }
+
+                }
+            },
+            endTimeOptions: {
+                disabledDate: (time) => {
+                    return time.getTime() < this.value1 || time.getTime() > Date.now();
+                }
+            },
+            value1: '',
+            value2: ''
+        },
+        created() {
+
+        },
+        methods: {
+            findMemberByDate() {
+                console.info(this.value1);
+                console.info(this.value2);
+                //获取日期区间信息;
+                var start = this.value1;
+                //获取开始日期信息
+                var sdate = start.getFullYear() + "-" + (start.getMonth()+1)+"-1";
+                console.info(sdate);
+                //获取结尾日期信息
+                var end = this.value2;
+                var edate = end.getFullYear() + "-" + (end.getMonth()+1)+"-31";
+                console.info(edate);
+
+                //返回报表信息
+                var myChart1 = echarts.init(document.getElementById('chart1'));
+                axios.post("/report/findMemberByDate.do?startDate=" + sdate + "&endDate=" + edate).then((res) => {
+                    if(res.data.flag) {
+                        myChart1.setOption(
+                            {
+                                title: {
+                                    text: '会员数量'
+                                },
+                                tooltip: {},
+                                legend: {
+                                    data: ['会员数量']
+                                },
+                                xAxis: {
+                                    data: res.data.data.months
+                                },
+                                yAxis: {
+                                    type: 'value'
+                                },
+                                series: [{
+                                    name: '会员数量',
+                                    type: 'line',
+                                    data: res.data.data.memberCounts
+                                }]
+                            });
+                    }else{
+                        this.$message.error(res.data.message);
+                    }
+                });
+            }
+        }
+    })
+
+</script>
+<script>
+    // 基于准备好的dom，初始化echarts实例
+    var myChart1 = echarts.init(document.getElementById('chart1'));
+    //发送ajax请求获取动态数据
+    axios.get("/report/getMemberReport.do").then((res) => {
+        myChart1.setOption(
+            {
+                title: {
+                    text: '会员数量'
+                },
+                tooltip: {},
+                legend: {
+                    data: ['会员数量']
+                },
+                xAxis: {
+                    data: res.data.data.months
+                },
+                yAxis: {
+                    type: 'value'
+                },
+                series: [{
+                    name: '会员数量',
+                    type: 'line',
+                    data: res.data.data.memberCounts
+                }]
+            });
+    });
+</script>
+
+</html>

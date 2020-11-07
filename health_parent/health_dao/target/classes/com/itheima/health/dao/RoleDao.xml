@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--namespace: 名称空间，接口的全限定名-->
+<mapper namespace="com.itheima.health.dao.RoleDao">
+
+    <!--查询所有角色-->
+    <select id="findAll" resultType="Role">
+        SELECT * FROM t_role
+    </select>
+
+    <select id="findByCondition" parameterType="String" resultType="Role">
+        select * from t_role
+        <where>
+            <if test="value!=null and value.length>0">
+                and name like #{value} or keyword like #{value} or description like #{value}
+            </if>
+        </where>
+    </select>
+
+    <select id="findByName" parameterType="String" resultType="role">
+        select * from t_role where name=#{mame}
+    </select>
+
+    <insert id="add" parameterType="role">
+        <selectKey resultType="int" order="AFTER" keyProperty="id">select last_insert_id()</selectKey>
+        insert into t_role (name,keyword,description) values (#{name},#{keyword},#{description})
+    </insert>
+
+    <insert id="addRolePermission" parameterType="int">
+        insert into t_role_permission (role_id,permission_id) values (#{roleId},#{permissionId})
+    </insert>
+
+    <insert id="addRoleMenu" parameterType="int">
+        insert into t_role_menu (role_id,menu_id) values (#{roleId},#{menuId})
+    </insert>
+
+    <select id="findUserRoleByRoleId" parameterType="int" resultType="int">
+        select count(1) from t_user_role where role_id=#{id}
+    </select>
+
+    <delete id="deleteRolePermissionByRoleId" parameterType="int">
+        delete from t_role_permission where role_id=#{id}
+    </delete>
+
+    <delete id="deleteRoleMenuByRoleId" parameterType="int">
+        delete from t_role_menu where role_id=#{id}
+    </delete>
+
+    <delete id="delete" parameterType="int">
+        delete from t_role where id=#{id}
+    </delete>
+
+    <select id="findById" parameterType="int" resultType="Role">
+        select * from t_role where id=#{id}
+    </select>
+
+    <update id="update" parameterType="Role">
+        update t_role set name=#{name},keyword=#{keyword},description=#{description} where id=#{id}
+    </update>
+</mapper>

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itheima.health.dao.UserDao">
+    <!--根据登陆用户名称查询用户权限信息-->
+    <select id="findByUsername" parameterType="string" resultMap="userRolePermissionResultMap">
+        select u.id, u.username, u.password,
+               ur.role_id, r.name role_name, r.keyword role_keyword,
+               rp.permission_id, p.name permission_name, p.keyword permission_keyword
+        from t_user u left join t_user_role ur on u.id = ur.user_id
+              left join t_role r on ur.role_id = r.id
+              left join t_role_permission rp on r.id = rp.role_id
+              left join t_permission p on rp.permission_id = p.id
+        where u.username = #{username}
+    </select>
+    <resultMap id="userRolePermissionResultMap" type="User">
+        <id property="id" column="id"/>
+        <result property="username" column="username"/>
+        <result property="password" column="password"/>
+        <!--用户下的角色集合-->
+        <collection property="roles" ofType="Role">
+            <id property="id" column="role_id"/>
+            <result property="name" column="role_name"/>
+            <result property="keyword" column="role_keyword"/>
+            <!--角色下的权限集合-->
+            <collection property="permissions" ofType="Permission">
+                <id property="id" column="permission_id"/>
+                <result property="name" column="permission_name"/>
+                <result property="keyword" column="permission_keyword"/>
+            </collection>
+        </collection>
+    </resultMap>
+
+    <!--分页查询用户-->
+    <select id="findPage" resultType="User" parameterType="String">
+        SELECT * FROM t_user
+        <if test="value != null and value.length > 0">
+            WHERE username LIKE #{value} OR remark LIKE #{value}
+        </if>
+    </select>
+
+    <!--新增用户-->
+    <insert id="addUser" parameterType="User">
+        INSERT INTO t_user (birthday, gender, username, password, remark, station, telephone)
+        VALUES (#{birthday}, #{gender}, #{username}, #{password}, #{remark}, #{station}, #{telephone});
+    </insert>
+
+    <!--根据用户id查询关联的角色id-->
+    <select id="checkRoleIdByUserId" resultType="Integer">
+        SELECT role_id FROM t_user_role WHERE user_id = #{id}
+    </select>
+
+    <!--删除用户id与角色id的关系-->
+    <delete id="deleteRoleUser" parameterType="int">
+        DELETE FROM t_user_role WHERE user_id = #{userId}
+    </delete>
+
+    <!--新增用户id与角色id的关系-->
+    <insert id="addRoleUser" parameterType="int">
+        INSERT INTO t_user_role (user_id, role_id)
+        values (#{userId}, #{roleId})
+    </insert>
+
+    <!--根据用户id查询用户数据-->
+    <select id="findById" parameterType="int" resultType="User">
+        SELECT * FROM t_user WHERE id = #{userId}
+    </select>
+
+    <!--更新用户数据-->
+    <update id="updateUser" parameterType="User">
+        UPDATE t_user
+        SET
+           birthday=#{birthday},
+           gender=#{gender},
+           username=#{username},
+           password=#{password},
+           remark=#{remark},
+           station=#{station},
+           telephone=#{telephone}
+        WHERE id = #{id}
+    </update>
+
+    <!--删除用户-->
+    <delete id="deleteById" parameterType="int">
+        DELETE FROM t_user WHERE id = #{userId}
+    </delete>
+</mapper>

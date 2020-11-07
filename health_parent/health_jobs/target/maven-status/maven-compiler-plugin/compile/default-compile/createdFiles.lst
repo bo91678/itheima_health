@@ -1,0 +1,4 @@
+com/itheima/health/JobData.class
+com/itheima/health/JobApplication.class
+com/itheima/health/job/CleanDataJob.class
+com/itheima/health/job/CleanImgJob.class
